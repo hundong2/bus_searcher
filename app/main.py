@@ -1,14 +1,42 @@
 """Main FastAPI application for bus searcher."""
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
+from app.api import statistics, real_statistics
+from app.database import models
+from app.database.config import engine
+import logging
+from dotenv import load_dotenv
+
+# 환경 변수 로드
+load_dotenv()
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+
+# 데이터베이스 테이블 생성
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Bus Searcher API",
-    description="API for searching and managing bus routes",
+    description="API for searching and managing bus routes in Pangyo-dong, Seongnam",
     version="0.1.0"
 )
+
+# CORS 미들웨어 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# API 라우터 등록
+app.include_router(statistics.router)
+app.include_router(real_statistics.router)
 
 
 class BusRoute(BaseModel):
@@ -57,11 +85,19 @@ bus_stops = [
 async def root():
     """Root endpoint."""
     return {
-        "message": "Welcome to Bus Searcher API",
+        "message": "Welcome to Bus Searcher API - Pangyo-dong Statistics",
         "version": "0.1.0",
         "endpoints": {
-            "routes": "/routes",
-            "stops": "/stops",
+            "mock_data": {
+                "stops": "/api/statistics/stops",
+                "weekly_ridership": "/api/statistics/weekly/{stop_id}",
+            },
+            "real_api": {
+                "fetch_stops": "/api/real/fetch-stops",
+                "saved_stops": "/api/real/stops",
+                "stop_detail": "/api/real/stops/{stop_id}/info",
+                "route_detail": "/api/real/routes/{route_id}/info",
+            },
             "docs": "/docs"
         }
     }

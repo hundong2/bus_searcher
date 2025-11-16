@@ -12,20 +12,20 @@ help:
 	@echo "  make docker-run   - Run Docker container"
 
 install:
-	pip install -r requirements.txt
+	python3 -m	pip install -r requirements.txt
 
 install-dev:
-	pip install -r requirements-dev.txt
+	python3 -m pip install -r requirements-dev.txt
 
 run:
 	uvicorn app.main:app --reload
 
 test:
-	pytest
+	python3 -m pytest
 
 build:
-	pip install build
-	python -m build
+	python3 -m pip install build
+	python3 -m build
 
 clean:
 	rm -rf build/ dist/ *.egg-info
